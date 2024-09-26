@@ -1,6 +1,7 @@
 #![warn(clippy::str_to_string)]
 
 mod commands;
+mod database_query;
 
 use dotenv::dotenv;
 use poise::serenity_prelude as serenity;
@@ -36,6 +37,13 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 async fn main() {
     env_logger::init();
     dotenv().ok();
+
+    tokio::spawn(async {
+        if let Err(e) = database_query::insert_and_fetch().await {
+            eprintln!("Error running database query: {}", e);
+        }
+    });
+
 
     let options = poise::FrameworkOptions {
         commands: vec![commands::calculate(), commands::help(), commands::vote(), commands::getvotes()],
